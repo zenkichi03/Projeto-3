@@ -1,154 +1,171 @@
+// comandos que servem para "importar" os frameworks 'express' e 'cors', da pasta 'node_modules'
 const express = require('express');
 const cors = require('cors');
 
-const {Sequelize} = require('./models');
+// importação do Sequelize para realizar alterações juntamente com consultas
+const { Sequelize } = require('./models');
 
-const models=require('./models');
+const models = require('./models');
+const { json } = require('sequelize');
 
-const app=express();
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-let cliente=models.Cliente;
-let itempedido = models.ItemPedido;
+let cliente = models.Cliente;
 let pedido = models.Pedido;
 let servico = models.Servico;
+let itempedido = models.ItemPedido;
 let compra = models.Compra;
-let itemcompra = models.ItemCompra;
 let produto = models.Produto;
+let itemcompra = models.ItemCompra;
 
-app.get('/', function(rec, res){
-    res.send('Olá, mundo')
+//'Olá, mundo'.
+app.get('/', function(req, res){
+    res.send('Olá, mundo!')
 });
 
-app.post('/servicos', async(req, res)=>{
-    await servico.create(
-        req.body
-    ).then(function(){
-        return res.json({
-            error: false,
-            message: "Serviço criado com sucesso"
-        })
-    }).catch(function(erro){
-        return res.status(400).json({
-            error: true,
-            message: "Foi impossível se conectar!"
-        })
-    });
-});
-
+//inserção de clientes
 app.post('/clientes', async(req, res)=>{
     await cliente.create(
         req.body
     ).then(function(){
         return res.json({
-           error: false,
-           message: "Cliente adicionado com sucesso!"
+            error: false,
+            message: "Cliente criado com sucesso"
         })
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Não foi possível implementar o cliente à base de dados!"
+            message: "Foi impossível se conectar"
         })
-    });
+    });    
 });
 
+//inserção de pedidos
 app.post('/pedidos', async(req, res)=>{
     await pedido.create(
         req.body
     ).then(function(){
         return res.json({
-           error: false,
-           message: "Pedido criado com sucesso!"
+            error: false,
+            message: "Pedido criado com sucesso"
         })
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Não foi possível criar o pedido!"
+            message: "Foi impossível se conectar"
         })
     });
 });
 
-app.post('/itenspedido', async(req, res)=>{
-    await itempedido.create(
+//inserção de serviços
+app.post('/servicos',  async(req, res)=>{
+    await servico.create(
         req.body
     ).then(function(){
         return res.json({
             error: false,
-            message: "Item criado com sucesso"
+            message: "Serviço criado com sucesso."
         })
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Foi impossível criar o item!"
+            message: "Foi impossível se conectar."
         })
     });
 });
 
+//inserção de itemPedido
+app.post('/itempedidos', async(req, res)=>{
+    await itempedido.create(
+        req.body    
+    ).then(function(){
+        return res.json({
+            error: false,
+            message: "Serviço criado com sucesso."
+        })
+    }).catch(function(erro){
+        return res.status(400).json({
+            error: true,
+            message: "Foi impossível se conectar."
+        })
+    });
+});
+
+//inserção de compras
 app.post('/compras', async(req, res)=>{
     await compra.create(
         req.body
     ).then(function(){
         return res.json({
-           error: false,
-           message: "Compra feita com sucesso!"
-        })
-    }).catch(function(erro){
+            error: false,
+            message: "Compra cadastrada com sucesso."
+        });
+    }).catch(()=>{
         return res.status(400).json({
             error: true,
-            message: "Não foi possível fazer a compra!"
-        })
+            message: "Foi impossível se conectar"
+        });
     });
 });
 
+//inserção de produtos
 app.post('/produtos', async(req, res)=>{
     await produto.create(
         req.body
-    ).then(function(){
+    )
+    .then((item)=>{
         return res.json({
-           error: false,
-           message: "Produto comprado com sucesso!"
-        })
-    }).catch(function(erro){
+            error: false,
+            message: 'Produto cadastrado com sucesso.',
+            item
+        });
+    }).catch(()=>{
         return res.status(400).json({
             error: true,
-            message: "Não foi possível comprar o produto!"
-        })
+            message: 'Erro de conexão.'
+        });
     });
 });
 
-app.post('/itenscompra', async(req, res)=>{
+//inserção de itemcompra
+app.post('/itemcompra', async(req, res)=>{
     await itemcompra.create(
         req.body
-    ).then(function(){
+    )
+    .then((item)=>{
         return res.json({
-           error: false,
-           message: "Item criado com sucesso!"
-        })
-    }).catch(function(erro){
+            error: false,
+            item
+        });
+    })
+    .catch(()=>{
         return res.status(400).json({
             error: true,
-            message: "Não foi possível criar o item!"
-        })
+            message: 'Erro de conexão'
+        });
     });
 });
 
-
+//consulta de serviços em ordem alfabética ascendente
 app.get('/listaservicos', async(req, res)=>{
     await servico.findAll({
         // raw: true
-        order: [['nome' , 'ASC']]
+        order: [['nome', 'ASC']]
     }).then(function(servicos){
         res.json({servicos})
     });
 });
 
+//consulta da quantidade de servicos
 app.get('/ofertaservicos', async(req, res)=>{
     await servico.count('id').then(function(servicos){
         res.json({servicos})
-    });
-});
+    })
+})
 
+//consulta servico com base na sua id 
 app.get('/servico/:id', async(req, res)=>{
     await servico.findByPk(req.params.id)
     .then(serv =>{
@@ -159,61 +176,404 @@ app.get('/servico/:id', async(req, res)=>{
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Erro: Não foi possível conectar"
+            message: "Erro: Não foi possível conectar."
         });
     });
 });
 
+
+/* consulta de serviço por meio do seu id, e retorno dos itempedidos associados a ele.
+Com isso, é possível saber qual pedido está associado a qual serviço.
+*/
+app.get('/servico/:id/pedidos', async(req, res)=>{
+    await itempedido.findAll({
+        where: {ServicoId: req.params.id}})
+    .then(item=>{
+        return res.json({
+            error: false,
+            item
+        });
+    }).catch(function(erro){
+        return res.status(400).json({
+            error: true,
+            message: "Erro: Não foi possível conectar"
+        });
+    });    
+});
+
+app.get('/produtos/:id/compras', async(req, res)=>{
+    await itemcompra.findAll({
+        where: {ProdutoId: req.params.id}
+    })
+    .then((item)=>{
+        return res.json({
+            error: false,
+            item
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro de conexão'
+        });
+    });
+});
+
+//consulta das compra do cliente com base em seu id
+app.get('/clientes/:id/compras', async(req, res)=>{
+    await compra.findAll({
+        where: {ClienteId: req.params.id}
+    })
+    .then((item)=>{
+        return res.json({
+            error: false,
+            item
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro de conexão'
+        });
+    });
+});
+
+//consulta dos pedidos com base no id de um cliente
+app.get('/cliente/:id/pedidos', async(req, res)=>{
+    await pedido.findAll({
+        where: {ClienteId: req.params.id}})
+    .then(item =>{
+        return res.json({
+            error: false,
+            item
+        });
+    }).catch(function(erro){
+        return res.status(400).json({
+            error: true,
+            message: "Erro: Não foi possível se conectar"   
+        });
+    });        
+});
+
+// app.get('/itempedido/:ServicoId/servicos', async(req, res)=>{
+//     await servico.findAll({
+//         where: {id: req.params.id}})
+//     .then(function(item){
+//         return res.json({
+//             error: false,
+//             item
+//         });        
+//     }).catch((erro)=>{
+//         return res.status(400).json({
+//             error: true,
+//             message: "Erro."
+//         });
+//     });
+// });
+
+//consulta dos serviços com base no id de um pedido
+app.get('/pedidos/:id/servicos', async(req, res)=>{
+    await itempedido.findAll({
+        where: {PedidoId: req.params.id}})
+    .then(function(item){
+        return res.json({
+            error: false,
+            item
+        });
+    }).catch((erro)=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro: Não foi possível se conectar.'
+        });
+    });
+});
+
+//consulta dos produtos com base no id da compra
+app.get('/compras/:id/produtos', async(req, res)=>{
+    await itemcompra.findAll({
+        where: {CompraId: req.params.id}
+    })
+    .then((item)=>{
+        return res.json({
+            error: 'false',
+            item
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: 'true',
+            message: 'Erro de conexão.'
+        });
+    });
+});
+
+// consulta de todos os clientes
 app.get('/listaclientes', async(req, res)=>{
     await cliente.findAll({
-        // raw: true
-        order: [['nome' , 'ASC']]
+        raw: true
     }).then(function(clientes){
         res.json({clientes})
     });
 });
 
-// app.put('/atualizaservico', async(req, res)=>{
-//     await servico.update(req.body,{
-//         where: {id: req.body.id}
-//     }).then(function(){
-//         return res.json({
-//             error: false,
-//             message: "O serviço foi alterado com sucesso"
-//         });
-//     }).catch(function(erro){
-//         return res.status(400).json({
-//             error: true,
-//             message: "Houve erro na tentativa de alteração do serviço"
-//         });
+//consulta de todos os pedidos
+app.get('/listapedidos', async(req, res)=>{
+    await pedido.findAll({
+        raw: true
+    }).then(function(pedidos){
+        res.json({pedidos})
+    });
+});
+
+//consulta das compras
+app.get('/listacompras', async(req, res)=>{
+    await compra.findAll({
+        raw: true
+    }).then(function(compras){
+        return res.json({compras})
+    });
+});
+
+
+//consulta dos produtos
+app.get('/listaprodutos', async(req, res)=>{
+    await produto.findAll({
+        raw: true
+    })
+    .then((item)=>{
+        return res.json({
+            error: false,
+            item
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro de conexão'
+        });
+    });
+});
+
+//consulta de todos os itemcompra
+app.get('/listaitemcompra', async(req, res)=>{
+    await itemcompra.findAll({
+        raw: true
+    })
+    .then((item)=>{
+        return res.json({
+            error: false,
+            item
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro de conexão'
+        });
+    });
+});
+
+//consulta dos pedidos com base no id
+app.get('/pedidos/:id', async(req, res)=>{
+    await pedido.findByPk(req.params.id)
+    .then((peds)=>{
+        return res.json({
+            error: false,
+            peds
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: "Erro de conexão com a API"
+        });
+    });
+});
+
+// consulta de todos os clientes, ordenando-os com base nas suas antiguidades como clientes
+app.get('/ordemclientes', async(req, res)=>{
+    await cliente.findAll({
+        order: [['clienteDesde', 'DESC']]
+    }).then(function(clientes){
+        res.json({clientes})
+    });
+});
+
+// consulta de todos os itens de pedidos, a partir do maior valor, indo até o menor
+app.get('/listaitempedidos', async(req, res)=>{
+    await itempedido.findAll({
+        order: [['valor', 'DESC']]
+    }).then(function(itempedido){
+        res.json({itempedido})
+    });
+});
+
+// query que faz a contagem de quantos clientes estão na base de dados
+app.get('/quantidadeclientes', async(req, res)=>{
+    await cliente.count('id').then(function(clientes){
+        res.json({clientes})
+    });
+});
+
+// consulta de quantos pedidos foram solicitados
+app.get('/ofertapedidos', async(req, res)=>{
+    await pedido.count('id').then(function(pedidos){
+        res.json({pedidos})
+    });
+});
+
+// método de alteração manual da tabela servico
+// app.get('/atualizaservico', async(req, res)=>{
+//     await servico.findByPk(1)
+//     .then(serv =>{
+//         serv.nome = 'HTML/CSS/JS';
+//         serv.descricao = 'Desenvolvimento de páginas estáticas e dinâmicas estilizadas';
+//         serv.save();
+//         return res.json({serv})
 //     });
 // });
 
+//alteração da tabela servico por meio de requisições externas
+app.put('/atualizacaoservico', async(req, res)=>{
+    await servico.update(req.body, {
+        where: {id: req.body.id}
+    }).then(function(){
+        return res.json({
+            error: false,
+            message: "Serviço alterado com sucesso."
+        });
+    }).catch(function(erro){
+        return res.status(400).json({
+            error: true,
+            message: "Erro na alteração do serviço"
+        });
+    });
+});
+
+//atualização de um serviço específico com base em seu id
+app.put('/atualizaservico/:id', async(req, res)=>{
+    await servico.update(req.body, {
+        where: {id: req.params.id}
+    })
+    .then(function(){
+        return res.json({
+            error: 'false',
+            message: 'Serviço alterado com sucesso'
+        });
+    })
+    .catch(function(erro){
+        return res.status(400).json({
+            error: 'true',
+            message: 'Erro'
+        });
+    });
+});
+
+//atualização de um cliente específico com base em seu id
+app.put('/atualizacliente/:id', async(req, res)=>{
+    await cliente.update(req.body, {
+        where: {id: req.params.id}
+    })
+    .then(function(){
+        return res.json({
+            error: 'false',
+            message: 'Cliente alterado com sucesso'           
+        });
+    })
+    .catch(function(erro){
+        return res.status(400).json({
+            error: 'true',
+            message: 'Erro: Não foi possível se conectar com o servidor'
+        });
+    });
+});
+
+//atualização de um pedido específico com base em seu id
+app.put('/atualizapedido/:id', async(req, res)=>{
+    await pedido.update(req.body, {
+        where: {id: req.params.id}
+    })
+    .then(function(){
+        return res.json({
+            error: false,
+            message: 'Pedido alterado com sucesso'
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro'
+        });
+    });
+});
+
+//atualização da compra com base no id
+app.put('/atualizacompra/:id', async(req, res)=>{
+    await compra.update(req.body, {
+        where: {id: req.params.id}
+    })
+    .then(()=>{
+        return res.json({
+            error: 'false',
+            message: 'Compra editada com sucesso'
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: 'true',
+            message: 'Erro de conexão'
+        });
+    });
+});
+
+//atualiza produto por id
+app.put('/atualizaproduto/:id', async(req, res)=>{
+    await produto.update(req.body, {
+        where: {id: req.params.id}
+    })
+    .then(()=>{
+        return res.json({
+            error: false,
+            message: 'Produto editado com sucesso.'
+        });
+    })
+    .catch(()=>{
+        return res.status(400).json({
+            error: true,
+            message: 'Erro de conexão.'
+        });
+    });
+});
+
+//consultando o pedido, e todos as classes que se relacionam com o mesmo
 app.get('/pedidos/:id', async(req, res)=>{
-    await pedido.findByPk(req.params.id, {include: [{all: true}]})
-    .then(ped=>{
+    await pedido.findByPk(req.params.id,{include: [{all: true}]})
+    .then(ped =>{
         return res.json({ped});
     })
 })
 
+//alterando um elemento com base na consulta que informa os atores que se relacionam com o pedido. 
 app.put('/pedidos/:id/editaritem', async(req, res)=>{
     const item={
         quantidade: req.body.quantidade,
         valor: req.body.valor
     };
 
-    if (!await pedido.findByPk(req.params.id)){
+    if(!await pedido.findByPk(req.params.id)){
         return res.status(400).json({
             error: true,
-            message: 'Pedido não foi encontrado.'
+            message: "Pedido não foi encontrado."
         });
     };
-    if (!await servico.findByPk(req.body.ServicoId)){
+
+    if(!await servico.findByPk(req.body.ServicoId)){
         return res.status(400).json({
             error: true,
-            message: 'Servico não foi encontrado'
+            message: "Serviço não foi encontrado."
         });
     };
+
     await itempedido.update(item, {
         where: Sequelize.and({ServicoId: req.body.ServicoId},
             {PedidoId: req.params.id})
@@ -226,139 +586,119 @@ app.put('/pedidos/:id/editaritem', async(req, res)=>{
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Erro: Não foi possível alterar!"
-        }); 
+            message: "Não foi possível alterar."
+        });
     });
 });
 
-
-app.get('/compras/:id', async(req, res)=>{
-    await compra.findByPk(req.params.id, {include: [{all: true}]})
-    .then(ped=>{
-        return res.json({ped});
+//consulta da tabela clientes, e todas as entidades que a relacionam
+app.get('/clientes/:id', async(req, res)=>{
+    await cliente.findByPk(req.params.id,{include: [{all: true}]})
+    .then(clie =>{
+        return res.json({clie});
     })
 })
 
-app.put('/compras/:id/itemedit', async(req, res)=>{
-    const itemm={
-        quantidade: req.body.quantidade,
-        valor: req.body.valor
-    };
+//exclusão "interna" de cliente
+// app.get('/excluircliente', async(req, res)=>{
+//     await cliente.destroy({
+//         where: {id: 8}
+//     });
+// });
 
-    if (!await compra.findByPk(req.params.id)){
-        return res.status(400).json({
-            error: true,
-            message: 'Compra não foi encontrada.'
-        });
-    };
-    if (!await produto.findByPk(req.body.ProdutoId)){
-        return res.status(400).json({
-            error: true,
-            message: 'Produto não foi encontrado'
-        });
-    };
-    await itemcompra.update(itemm, {
-        where: Sequelize.and({ProdutoId: req.body.ProdutoId},
-            {CompraId: req.params.id})
-    }).then(function(itens){
-        return res.json({
-            error: false,
-            message: "Compra foi alterada com sucesso",
-            itens
-        });
-    }).catch(function(erro){
-        return res.status(400).json({
-            error: true,
-            message: "Erro: Não foi possível alterar!"
-        }); 
-    });
-});
-
-
-
-
-app.get('/excluircliente/:id', async(req, res)=>{
+//exclusão do cliente por requisição externa
+app.delete('/excluicliente/:id', async(req, res)=>{
     await cliente.destroy({
         where: {id: req.params.id}
     }).then(function(){
         return res.json({
             error: false,
-            message: "Cliente foi excluído com sucesso"
+            message: "Cliente excluído com sucesso."
         });
     }).catch(function(erro){
         return res.status(400).json({
             error: true,
-            message: "Erro ao excluir o cliente"
+            message: "Erro: Não foi possível excluir o cliente."
         });
     });
 });
 
-app.get('/excluirpedido/:id', async(req, res)=>{
+
+//excluir um pedido com base em seu id
+app.delete('/excluirpedido/:id', async(req, res)=>{
     await pedido.destroy({
         where: {id: req.params.id}
-    }).then(function(){
+    })
+    .then(function(){
         return res.json({
             error: false,
-            message: "Pedido foi excluído com sucesso"
+            message: "Pedido excluído com sucesso."
         });
-    }).catch(function(erro){
+    })
+    .catch((erro)=>{
         return res.status(400).json({
             error: true,
-            message: "Erro ao excluir o pedido"
+            message: "Erro: Não foi possível excluir o cliente."
         });
     });
 });
 
-app.get('/excluiritempedido/:id', async(req, res)=>{
-    await itempedido.destroy({
+//exclusão de um serviço com base em seu id
+app.delete('/excluirservico/:id', async(req, res)=>{
+    await servico.destroy({
         where: {id: req.params.id}
-    }).then(function(){
+    })
+    .then(function(){
         return res.json({
-            error: false,
-            message: "Item foi excluído com sucesso"
+            error: 'false',
+            message: 'Serviço excluído com sucesso'
         });
-    }).catch(function(erro){
+    })
+    .catch(()=>{
         return res.status(400).json({
-            error: true,
-            message: "Erro ao excluir o item"
+            error: 'true',
+            message: "Erro: Não foi possível excluir o cliente."
         });
     });
 });
 
-app.get('/excluircompra/:id', async(req, res)=>{
+//exclusão de uma compra com base em seu id
+app.delete('/excluircompra/:id', async(req, res)=>{
     await compra.destroy({
         where: {id: req.params.id}
-    }).then(function(){
+    })
+    .then(function(){
         return res.json({
             error: false,
-            message: "Compra excluída com sucesso"
+            message: 'Compra excluída com sucesso'
         });
-    }).catch(function(erro){
+    })
+    .catch(()=>{
         return res.status(400).json({
             error: true,
-            message: "Erro ao excluir a compra"
+            message: 'Erro: Não foi possível excluir o cliente'
         });
     });
 });
 
-app.get('/excluiritemcompra/:id', async(req, res)=>{
-    await itemcompra.destroy({
+app.delete('/excluirproduto/:id', async(req, res)=>{
+    await produto.destroy({
         where: {id: req.params.id}
-    }).then(function(){
+    }).then(()=>{
         return res.json({
             error: false,
-            message: "Item foi excluído da compra com sucesso"
+            message: 'Produto excluído com sucesso.'
         });
-    }).catch(function(erro){
+    }).catch(()=>{
         return res.status(400).json({
             error: true,
-            message: "Erro ao excluir o item da compra"
+            message: 'Erro: Não foi possível excluir o cliente.'
         });
     });
 });
 
-let port=process.env.PORT || 3001;
+let port = process.env.PORT || 3001;
 
-app.listen(port,(req, res)=>{
+app.listen(port,(req,res)=>{
     console.log('Servidor ativo: http://localhost:3001');
 })
